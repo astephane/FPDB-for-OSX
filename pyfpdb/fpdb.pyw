@@ -79,6 +79,7 @@ except:
 import SQL
 import Database
 import Configuration
+import Card
 import Exceptions
 import Stats
 
@@ -480,6 +481,29 @@ class fpdb(QMainWindow):
         self.release_global_lock()
     #end def storeNewHudStatConfig
 
+    def dia_import_filters(self, checkState):
+        dia = QDialog()
+        dia.setWindowTitle("Skip these games when importing")
+        dia.setLayout(QVBoxLayout())
+        checkboxes = {}
+        filters = self.config.get_import_parameters()['importFilters']
+        for game in Card.games:
+            checkboxes[game] = QCheckBox(game)
+            dia.layout().addWidget(checkboxes[game])
+            if game in filters:
+                checkboxes[game].setChecked(True)
+        btns = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        dia.layout().addWidget(btns)
+        btns.accepted.connect(dia.accept)
+        btns.rejected.connect(dia.reject)
+        if dia.exec_():
+            filterGames = []
+            for game, cb in checkboxes.items():
+                if cb.isChecked():
+                    filterGames.append(game)
+            self.config.editImportFilters(",".join(filterGames))
+            self.config.save()
+
     def dia_dump_db(self, widget, data=None):
         filename = "database-dump.sql"
         result = self.db.dumpDatabase()
@@ -809,6 +833,7 @@ class fpdb(QMainWindow):
         configMenu.addAction(makeAction(_('_Site Settings'), self.dia_site_preferences))
         configMenu.addAction(makeAction(_('_Preferences'), self.dia_advanced_preferences, tip='Edit your preferences'))
         #configMenu.addAction(makeAction(_('_HUD Stats Settings'), self.dia_hud_preferences))
+        configMenu.addAction(makeAction('Import filters', self.dia_import_filters))
         configMenu.addSeparator()
         configMenu.addAction(makeAction(_('_Quit'), self.quit, 'Ctrl+Q', 'Quit the Program'))
 
@@ -856,35 +881,33 @@ class fpdb(QMainWindow):
                            + _("Enter your screen_name and hand history path in the Site Preferences window (Main menu) before trying to import hands."))
             self.display_config_created_dialogue = False
         elif self.config.wrongConfigVersion:
-            diaConfigVersionWarning = gtk.Dialog(title=_("Strong Warning - Local configuration out of date"),
-                                             parent=None, flags=0, buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK))
+            diaConfigVersionWarning = QDialog()
+            diaConfigVersionWarning.setWindowTitle(_("Strong Warning - Local configuration out of date"))
+            diaConfigVersionWarning.setLayout(QVBoxLayout())
 
             label = QLabel("\n"+_("Your local configuration file needs to be updated."))
-            diaConfigVersionWarning.vbox.add(label)
-            label.show()
+            diaConfigVersionWarning.layout().addWidget(label)
 
             label = QLabel(_("This error is not necessarily fatal but it is strongly recommended that you update the configuration.")+"\n")
-            diaConfigVersionWarning.vbox.add(label)
-            label.show()
+            diaConfigVersionWarning.layout().addWidget(label)
 
             label = QLabel(_("To create a new configuration, see fpdb.sourceforge.net/apps/mediawiki/fpdb/index.php?title=Reset_Configuration"))
-            label.set_selectable(True)
-            diaConfigVersionWarning.vbox.add(label)
-            label.show()
+            label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            diaConfigVersionWarning.layout().addWidget(label)
             label = QLabel(_("A new configuration will destroy all personal settings (hud layout, site folders, screennames, favourite seats)")+"\n")
-            diaConfigVersionWarning.vbox.add(label)
-            label.show()
+            diaConfigVersionWarning.layout().addWidget(label)
 
             label = QLabel(_("To keep existing personal settings, you must edit the local file."))
-            diaConfigVersionWarning.vbox.add(label)
-            label.show()
+            diaConfigVersionWarning.layout().addWidget(label)
 
             label = QLabel(_("See the release note for information about the edits needed"))
-            diaConfigVersionWarning.vbox.add(label)
-            label.show()
+            diaConfigVersionWarning.layout().addWidget(label)
 
-            response = diaConfigVersionWarning.run()
-            diaConfigVersionWarning.destroy()
+            btns = QDialogButtonBox(QDialogButtonBox.Ok)
+            btns.accepted.connect(diaConfigVersionWarning.accept)
+            diaConfigVersionWarning.layout().addWidget(btns)
+
+            diaConfigVersionWarning.exec_()
             self.config.wrongConfigVersion = False
             
         self.settings = {}
