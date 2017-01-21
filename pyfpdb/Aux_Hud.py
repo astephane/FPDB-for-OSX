@@ -152,7 +152,7 @@ class Simple_Stat_Window(Aux_Base.Seat_Window):
             pu.setStyleSheet("background:%s;color:%s;" % (self.aw.bgcolor, self.aw.fgcolor))
                     
     def create_contents(self, i):
-        self.setStyleSheet("background:%s;color:%s;" % (self.aw.bgcolor, self.aw.fgcolor))
+        self.setStyleSheet("QWidget{background:%s;color:%s;}QToolTip{}" % (self.aw.bgcolor, self.aw.fgcolor))
         self.grid = QGridLayout()
         self.grid.setHorizontalSpacing(4)
         self.grid.setVerticalSpacing(1)
@@ -185,7 +185,7 @@ class Simple_stat(object):
         self.stat = stat
         self.lab = aw.aw_class_label("xxx") # xxx is used as initial value because longer labels don't shrink
         self.lab.setAlignment(Qt.AlignCenter)
-        self.lab.aw_seat = seat
+        self.lab.aw_seat = aw.hud.layout.hh_seats[seat]
         self.lab.aw_popup = popup
         self.lab.stat_dict = None
         self.widget = self.lab
