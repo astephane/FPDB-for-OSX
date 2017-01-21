@@ -18,7 +18,7 @@
 import L10n
 _ = L10n.get_translation()
 
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import QDate, QDateTime
 from PyQt5.QtWidgets import (QCalendarWidget, QCheckBox, QCompleter,
                              QDateEdit, QDialog, QGridLayout,
                              QGroupBox, QHBoxLayout, QLabel,
@@ -49,7 +49,7 @@ class Filters(QWidget):
         self.sql = db.sql
         self.conf = db.config
         self.display = display
-            
+
         self.gameName = {"27_1draw"  : _("Single Draw 2-7 Lowball")
                         ,"27_3draw"  : _("Triple Draw 2-7 Lowball")
                         ,"a5_3draw"  : _("Triple Draw A-5 Lowball")
@@ -101,6 +101,7 @@ class Filters(QWidget):
 
         self.callback = {}
 
+        self.setStyleSheet("QPushButton {padding-left:5;padding-right:5;padding-top:2;padding-bottom:2;}")
         self.make_filter()
         
     def make_filter(self):
@@ -296,16 +297,10 @@ class Filters(QWidget):
         t1 = self.start_date.date()
         t2 = self.end_date.date()
 
-        s1 = strptime(t1.toString("yyyy-MM-dd"), "%Y-%m-%d") # make time_struct
-        e1 = mktime(s1) + offset  # s1 is localtime, but returned time since epoch is UTC, then add the 
-        adj_t1 = strftime("%Y-%m-%d %H:%M:%S", gmtime(e1)) # make adjusted string including time
+        adj_t1 = QDateTime(t1).addSecs(offset)
+        adj_t2 = QDateTime(t2).addSecs(offset + 24 * 3600 - 1)
 
-        s2 = strptime(t2.toString("yyyy-MM-dd"), "%Y-%m-%d")
-        e2 = mktime(s2) + offset  # s2 is localtime, but returned time since epoch is UTC
-        e2 = e2 + 24 * 3600 - 1   # date test is inclusive, so add 23h 59m 59s to e2
-        adj_t2 = strftime("%Y-%m-%d %H:%M:%S", gmtime(e2))
-
-        return (adj_t1, adj_t2)
+        return (adj_t1.toUTC().toString("yyyy-MM-dd HH:mm:ss"), adj_t2.toUTC().toString("yyyy-MM-dd HH:mm:ss"))
 
     def registerButton1Name(self, title):
         self.Button1.setText(title)
@@ -342,7 +337,11 @@ class Filters(QWidget):
             for j in range(0,13):
                 abbr = Card.card_map_abbr[j][i]
                 b = QPushButton("")
-                b.setStyleSheet("QPushButton {border-width:0;margin:6;padding:0;}")
+                import platform
+                if platform.system == "Darwin":
+                    b.setStyleSheet("QPushButton {border-width:0;margin:6;padding:0;}")
+                else:
+                    b.setStyleSheet("QPushButton {border-width:0;margin:0;padding:0;}")
                 b.clicked.connect(partial(self.__toggle_card_select, widget=b, card=abbr))
                 self.cards[abbr] = False # NOTE: This is flippped in __toggle_card_select below
                 self.__toggle_card_select(False, widget=b, card=abbr)
@@ -420,7 +419,7 @@ class Filters(QWidget):
             hbox.addWidget(lbl)
 
             self.phands = QSpinBox()
-            self.phands.setMaximum(1e9)
+            self.phands.setMaximum(1e5)
             hbox.addWidget(self.phands)
 
     def fillSitesFrame(self, frame):
@@ -712,10 +711,12 @@ class Filters(QWidget):
         adj2.setValue(10)
         adj2.valueChanged.connect(partial(self.__seats_changed, 'to'))
 
+        hbox.addStretch()
         hbox.addWidget(lbl_from)
         hbox.addWidget(adj1)
         hbox.addWidget(lbl_to)
         hbox.addWidget(adj2)
+        hbox.addStretch()
 
         self.sbSeats['from'] = adj1
         self.sbSeats['to']   = adj2
@@ -759,6 +760,8 @@ class Filters(QWidget):
         table.addWidget(btn_end, 1, 1)
         table.addWidget(self.end_date, 1, 2)
         table.addWidget(clr_end, 1, 3)
+
+        table.setColumnStretch(0, 1)
 
     def get_limits_where_clause(self, limits):
         """Accepts a list of limits and returns a formatted SQL where clause starting with AND.

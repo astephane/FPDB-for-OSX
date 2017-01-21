@@ -37,7 +37,7 @@ import time
 import string
 import logging
 
-from PyQt5.QtCore import (QCoreApplication, QMetaObject, QObject,
+from PyQt5.QtCore import (QCoreApplication, QMetaObject, QObject, Qt,
                           QThread, pyqtSignal)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow,
@@ -118,7 +118,7 @@ class HUD_main(QObject):
         self.stdinThread.start()
 
         # a main window
-        self.main_window = QWidget()
+        self.main_window = QWidget(None, Qt.Dialog)
 
         if options.xloc is not None or options.yloc is not None:
             if options.xloc is None:
@@ -128,8 +128,10 @@ class HUD_main(QObject):
             self.main_window.move(options.xloc,options.yloc)
         self.main_window.destroyed.connect(self.destroy)
         self.vb = QVBoxLayout()
+        self.vb.setContentsMargins(2, 0, 2, 0)
         self.main_window.setLayout(self.vb)
         self.label = QLabel(_('Closing this window will exit from the HUD.'))
+        self.main_window.closeEvent = lambda event: exit()
         self.vb.addWidget(self.label)
         self.main_window.setWindowTitle("HUD Main Window")
         cards = os.path.join(self.config.graphics_path,'fpdb-cards.png')
