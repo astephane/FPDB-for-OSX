@@ -36,7 +36,14 @@ windows_modules_to_test =  ["win32gui",
                             "win32console",
                             "winpaths"]
 
-linux_modules_to_test = ["xcffib", "xcffib.xproto"]
+if (__debug__ and True) or False:
+    # Format: (__debug__ and <conditionnal-activation>) or <force-activation>
+    # Disable linux module test on development platform (such as Debian GNU/Linux
+    # "jessie") which does not support this module.
+    linux_modules_to_test = []
+else:
+    linux_modules_to_test = ["xcffib", "xcffib.xproto"]
+
 mac_modules_to_test = []
 posix_modules_to_test = []
 
