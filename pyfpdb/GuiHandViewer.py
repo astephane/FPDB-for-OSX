@@ -94,18 +94,27 @@ class GuiHandViewer(QSplitter):
 
         # Dict of colnames and their column idx in the model/ListStore
         self.colnum = {
-                  'Stakes'       : 0,
-                  'Pos'          : 1,
-                  'Street0'      : 2,
-                  'Action0'      : 3,
-                  'Street1-4'    : 4,
-                  'Action1-4'    : 5,
-                  'Won'          : 6,
-                  'Bet'          : 7,
-                  'Net'          : 8,
-                  'Game'         : 9,
-                  'HandId'       : 10,
-                 }
+            'Stakes'       : 0,
+            'Pos'          : 1,
+            'Street0'      : 2,
+            'Action0'      : 3,
+            'Street1-4'    : 4,
+            'Action1-4'    : 5,
+            'Won'          : 6,
+            'Bet'          : 7,
+            'Net'          : 8,
+            'Game'         : 9,
+            'Date'         : 10,
+            'HandId'       : 11,
+        }
+
+        # Invert col->num dictionnary and store for further use (may be
+        # interesting to keep for later use).
+        #
+        # Becase column indexes are ordered, self.numcol.values() returns the
+        # name of the QTableView header names in correct order.
+        self.numcol = { v : k for k, v in self.colnum.iteritems() }
+
         self.view = QTableView()
         self.view.setSelectionBehavior(QTableView.SelectRows)
         self.handsVBox.addWidget(self.view)
@@ -116,9 +125,8 @@ class GuiHandViewer(QSplitter):
 
         self.view.setModel(self.filterModel)
         self.view.verticalHeader().hide()
-        self.model.setHorizontalHeaderLabels(
-            ['Stakes', 'Pos', 'Street0', 'Action0', 'Street1-4', 'Action1-4',
-             'Won', 'Bet', 'Net', 'Game', 'HandId'])
+
+        self.model.setHorizontalHeaderLabels( self.numcol.values() )
 
         self.view.doubleClicked.connect(self.row_activated)
         self.view.contextMenuEvent = self.contextMenu
@@ -205,7 +213,10 @@ class GuiHandViewer(QSplitter):
         net = won - bet
         pos = hand.get_player_position(hero)
         gt =  hand.gametype['category']
+        startTime = hand.startTime
+
         row = []
+
         if hand.gametype['base'] == 'hold':
             board =  []
             board.extend(hand.board['FLOP'])
@@ -218,7 +229,7 @@ class GuiHandViewer(QSplitter):
                 post_actions = hand.get_actions_short_streets(hero, 'FLOP', 'TURN', 'RIVER')
 
             row = [hand.getStakesAsString(), pos, hand.join_holecards(hero), pre_actions, ' '.join(board), post_actions, str(won), str(bet), 
-                   str(net), gt, str(handid)]
+                   str(net), gt, startTime, str(handid)]
         elif hand.gametype['base'] == 'stud':
             third = " ".join(hand.holecards['THIRD'][hero][0]) + " " + " ".join(hand.holecards['THIRD'][hero][1]) 
             # ugh - fix the stud join_holecards function so we can retrieve sanely
@@ -234,10 +245,10 @@ class GuiHandViewer(QSplitter):
                 post_actions = hand.get_actions_short_streets(hero, 'FOURTH', 'FIFTH', 'SIXTH', 'SEVENTH')
 
             row = [hand.getStakesAsString(), pos, third, pre_actions, ' '.join(later_streets), post_actions, str(won), str(bet), str(net), 
-                   gt, str(handid)]
+                   gt, startTime, str(handid)]
         elif hand.gametype['base'] == 'draw':
             row = [hand.getStakesAsString(), pos, hand.join_holecards(hero,street='DEAL'), hand.get_actions_short(hero, 'DEAL'), None, None, 
-                   str(won), str(bet), str(net), gt, str(handid)]
+                   str(won), str(bet), str(net), gt, startTime, str(handid)]
 
         modelrow = [QStandardItem(r) for r in row]
         for index, item in enumerate(modelrow):

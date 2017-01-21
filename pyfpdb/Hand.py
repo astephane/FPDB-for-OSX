@@ -469,7 +469,15 @@ class Hand(object):
         #except ValueError:
         #    self.startTime = datetime.datetime.strptime(res['starttime'], "%Y-%m-%d %H:%M:%S")
         # However a startTime is needed for a valid output by writeHand:
-        self.startTime = datetime.datetime.strptime("1970-01-01 12:00:00", "%Y-%m-%d %H:%M:%S")
+        # self.startTime = datetime.datetime.strptime("1970-01-01 12:00:00", "%Y-%m-%d %H:%M:%S")
+        #
+        # (astephane) Answer: This is certainly due the timezone of the time of
+        # play compared to the locale timezome of the system
+        # (see https://doc.python.org/2/library/datetime.html?highlight=datetime#datetime.tzinfo)
+        #
+        # (astephane) Just use the datetime object keeping time-zone info which
+        # is helpfull to obtain locale date/time strings.
+        self.startTime = res[ 'starttime' ]
 
         cards = map(Card.valueSuitFromCard, [res['boardcard1'], res['boardcard2'], res['boardcard3'], res['boardcard4'], res['boardcard5']])
         if cards[0]:
@@ -1029,6 +1037,10 @@ class Hand(object):
         else: # non-mixed cash games
             gs = gs + " %s (%s) - " % (self.getGameTypeAsString(), self.getStakesAsString())
 
+        # (astephane): At this point, IMHO, I think that we should let the
+        # exception stop program execution but ensure that we get locale
+        # date/time format using datetime.datetime.tzinfo object to format the
+        # string.
         try:
             timestr = datetime.datetime.strftime(self.startTime, '%Y/%m/%d %H:%M:%S ET')
         except TypeError:
