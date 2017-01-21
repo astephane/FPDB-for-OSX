@@ -34,7 +34,10 @@ try:
     calluse = not 'matplotlib' in sys.modules
     import matplotlib
     if calluse:
-        matplotlib.use('qt5agg')
+        try:
+            matplotlib.use('qt5agg')
+        except ValueError, e:
+            print e
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_qt5agg import FigureCanvas
     from matplotlib.font_manager import FontProperties
@@ -59,6 +62,7 @@ class GuiTourneyGraphViewer(QSplitter):
         filters_display = { "Heroes"    : True,
                             "Sites"     : True,
                             "Games"     : False,
+                            "Currencies": True,
                             "Limits"    : False,
                             "LimitSep"  : False,
                             "LimitType" : False,
@@ -186,6 +190,12 @@ class GuiTourneyGraphViewer(QSplitter):
         tmp = self.sql.query['tourneyGraph']
         start_date, end_date = self.filters.getDates()
 
+        currencies = self.filters.getCurrencies()
+        currencytest = str(tuple(currencies))
+        currencytest = currencytest.replace(",)",")")
+        currencytest = currencytest.replace("u'","'")
+        currencytest = "AND tt.currency in %s" % currencytest
+
         #Buggered if I can find a way to do this 'nicely' take a list of integers and longs
         # and turn it into a tuple readale by sql.
         # [5L] into (5) not (5,) and [5L, 2829L] into (5, 2829)
@@ -197,6 +207,7 @@ class GuiTourneyGraphViewer(QSplitter):
         tmp = tmp.replace("<site_test>", sitetest)
         tmp = tmp.replace("<startdate_test>", start_date)
         tmp = tmp.replace("<enddate_test>", end_date)
+        tmp = tmp.replace("<currency_test>", currencytest)
         tmp = tmp.replace(",)", ")")
 
         #print "DEBUG: sql query:", tmp
