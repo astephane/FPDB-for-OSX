@@ -132,7 +132,7 @@ class HUD_main(QObject):
         self.vb.setContentsMargins(2, 0, 2, 0)
         self.main_window.setLayout(self.vb)
         self.label = QLabel(_('Closing this window will exit from the HUD.'))
-        self.main_window.closeEvent = lambda event: exit()
+        self.main_window.closeEvent = lambda event: sys.exit()
         self.vb.addWidget(self.label)
         self.main_window.setWindowTitle("HUD Main Window")
         cards = os.path.join(self.config.graphics_path,'fpdb-cards.png')
@@ -147,6 +147,8 @@ class HUD_main(QObject):
         if self.config.os_family == "Mac":
             for hud in self.hud_dict.values():
                 for aw in hud.aux_windows:
+                    if not hasattr(aw, 'm_windows'):
+                        continue
                     for w in aw.m_windows.values():
                         if w.isVisible():
                             hud.table.topify(w)
