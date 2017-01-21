@@ -797,33 +797,35 @@ class fpdb(QMainWindow):
         maintenanceMenu = mb.addMenu(_('_Maintenance'))
         helpMenu = mb.addMenu(_('_Help'))
         # Create actions
-        def makeAction(name, callback, tip=None):
+        def makeAction(name, callback, shortcut=None, tip=None):
             action = QAction(name, self)
+            if shortcut:
+                action.setShortcut(shortcut)
             if tip:
                 action.setToolTip(tip)
             action.triggered.connect(callback)
             return action
 
         configMenu.addAction(makeAction(_('_Site Settings'), self.dia_site_preferences))
-        configMenu.addAction(makeAction(_('_Preferences'), self.dia_advanced_preferences, 'Edit your preferences'))
+        configMenu.addAction(makeAction(_('_Preferences'), self.dia_advanced_preferences, tip='Edit your preferences'))
         #configMenu.addAction(makeAction(_('_HUD Stats Settings'), self.dia_hud_preferences))
         configMenu.addSeparator()
-        configMenu.addAction(makeAction(_('_Quit'), self.quit, 'Quit the Program'))
+        configMenu.addAction(makeAction(_('_Quit'), self.quit, 'Ctrl+Q', 'Quit the Program'))
 
-        importMenu.addAction(makeAction(_('_Bulk Import'), self.tab_bulk_import))
+        importMenu.addAction(makeAction(_('_Bulk Import'), self.tab_bulk_import, 'Ctrl+B'))
         #importMenu.addAction(makeAction(_('_Import through eMail/IMAP'), self.tab_imap_import))
 
-        hudMenu.addAction(makeAction(_('_HUD and Auto Import'), self.tab_auto_import))
+        hudMenu.addAction(makeAction(_('_HUD and Auto Import'), self.tab_auto_import, 'Ctrl+A'))
 
-        cashMenu.addAction(makeAction(_('_Graphs'), self.tabGraphViewer))
-        cashMenu.addAction(makeAction(_('Ring _Player Stats'), self.tab_ring_player_stats))
+        cashMenu.addAction(makeAction(_('_Graphs'), self.tabGraphViewer, 'Ctrl+G'))
+        cashMenu.addAction(makeAction(_('Ring _Player Stats'), self.tab_ring_player_stats, 'Ctrl+P'))
         cashMenu.addAction(makeAction(_('Hand _Viewer'), self.tab_hand_viewer))
         #cashMenu.addAction(makeAction(_('P_ositional Stats (tabulated view)'), self.tab_positional_stats))
-        cashMenu.addAction(makeAction(_('Session Stats'), self.tab_session_stats))
+        cashMenu.addAction(makeAction(_('Session Stats'), self.tab_session_stats, 'Ctrl+S'))
         #cashMenu.addAction(makeAction(_('Stove (preview)'), self.tabStove))
 
         tournamentMenu.addAction(makeAction(_('Tourney Graphs'), self.tabTourneyGraphViewer))
-        tournamentMenu.addAction(makeAction(_('_Tourney Stats'), self.tab_tourney_player_stats))
+        tournamentMenu.addAction(makeAction(_('_Tourney Stats'), self.tab_tourney_player_stats, 'Ctrl+T'))
         #tournamentMenu.addAction(makeAction(_('Tourney _Viewer'), self.tab_tourney_viewer_stats))
 
         maintenanceMenu.addAction(makeAction(_('_Statistics'), self.dia_database_stats, 'View Database Statistics'))
@@ -924,24 +926,10 @@ class fpdb(QMainWindow):
             self.db = None
 
         if self.db is not None and self.db.wrongDbVersion:
-            diaDbVersionWarning = gtk.Dialog(title=_("Strong Warning - Invalid database version"),
-                                             parent=None, flags=0, buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK))
-
-            label = QLabel(_("An invalid DB version or missing tables have been detected."))
-            diaDbVersionWarning.vbox.add(label)
-            label.show()
-
-            label = QLabel(_("This error is not necessarily fatal but it is strongly recommended that you recreate the tables by using the Database menu."))
-            diaDbVersionWarning.vbox.add(label)
-            label.show()
-
-            label = QLabel(_("Not doing this will likely lead to misbehaviour including fpdb crashes, corrupt data etc."))
-            diaDbVersionWarning.vbox.add(label)
-            label.show()
-
-            response = diaDbVersionWarning.run()
-            diaDbVersionWarning.destroy()
-
+            diaDbVersionWarning = QMessageBox(QMessageBox.Warning, _("Strong Warning - Invalid database version"), _("An invalid DB version or missing tables have been detected."), QMessageBox.Ok, self)
+            diaDbVersionWarning.setInformativeText(_("This error is not necessarily fatal but it is strongly recommended that you recreate the tables by using the Database menu.")
+                                                   + "\n" +  _("Not doing this will likely lead to misbehaviour including fpdb crashes, corrupt data etc."))
+            diaDbVersionWarning.exec_()
         if self.db is not None and self.db.is_connected():
             self.statusBar().showMessage(_("Status: Connected to %s database named %s on host %s")
                                      % (self.db.get_backend_name(), self.db.database, self.db.host))
@@ -1129,14 +1117,14 @@ You can find the full license texts in agpl-3.0.txt, gpl-2.0.txt, gpl-3.0.txt an
         defx, defy = 900, 720
         sg = QApplication.primaryScreen().availableGeometry()
         if sg.width() < defx:
-            defx = sx
+            defx = sg.width()
         if sg.height() < defy:
-            defy = sy
+            defy = sg.height()
         self.resize(defx, defy)
 
         # create our Main Menu Bar
         self.createMenuBar()
-        
+
         # create a tab bar
         self.nb = QTabWidget()
         self.setCentralWidget(self.nb)
