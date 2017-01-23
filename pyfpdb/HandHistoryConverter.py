@@ -33,7 +33,6 @@ from xml.dom.minidom import Node
 import time
 import datetime
 
-from pytz import timezone
 import pytz
 
 import logging
@@ -531,7 +530,7 @@ or None if we fail to get the info """
 
     def getTourney(self):
         return self.tourney
-        
+
     @staticmethod
     def changeTimezone(time, givenTimezone, wantedTimezone):
         """Takes a givenTimezone in format AAA or AAA+HHMM where AAA is a standard timezone
@@ -555,72 +554,72 @@ or None if we fail to get the info """
         else: offset=0
 
         if givenTimezone in ("ET", "EST", "EDT"):
-            givenTZ = timezone('US/Eastern')
+            givenTZ = pytz.timezone('US/Eastern')
         elif givenTimezone in ("CET", "CEST", "MEZ", "MESZ", "HAEC"):
             #since CEST will only be used in summer time it's ok to treat it as identical to CET.
-            givenTZ = timezone('Europe/Berlin')
+            givenTZ = pytz.timezone('Europe/Berlin')
             #Note: Daylight Saving Time is standardised across the EU so this should be fine
         elif givenTimezone == 'GMT': # GMT is always the same as UTC
-            givenTZ = timezone('GMT')
+            givenTZ = pytz.timezone('GMT')
             # GMT cannot be treated as WET because some HH's are explicitly
             # GMT+-delta so would be incorrect during the summertime 
             # if substituted as WET+-delta
         elif givenTimezone == 'BST':
-             givenTZ = timezone('Europe/London')
+             givenTZ = pytz.timezone('Europe/London')
         elif givenTimezone == 'WET': # WET is GMT with daylight saving delta
-            givenTZ = timezone('WET')
+            givenTZ = pytz.timezone('WET')
         elif givenTimezone in ('HT', 'HST', 'HDT'): # Hawaiian Standard Time
-            givenTZ = timezone('US/Hawaii')
+            givenTZ = pytz.timezone('US/Hawaii')
         elif givenTimezone == 'AKT': # Alaska Time
-            givenTZ = timezone('US/Alaska')
+            givenTZ = pytz.timezone('US/Alaska')
         elif givenTimezone in ('PT', 'PST', 'PDT'): # Pacific Time
-            givenTZ = timezone('US/Pacific')
+            givenTZ = pytz.timezone('US/Pacific')
         elif givenTimezone in ('MT', 'MST', 'MDT'): # Mountain Time
-            givenTZ = timezone('US/Mountain')
+            givenTZ = pytz.timezone('US/Mountain')
         elif givenTimezone in ('CT', 'CST', 'CDT'): # Central Time
-            givenTZ = timezone('US/Central')
+            givenTZ = pytz.timezone('US/Central')
         elif givenTimezone == 'AT': # Atlantic Time
-            givenTZ = timezone('Canada/Atlantic')
+            givenTZ = pytz.timezone('Canada/Atlantic')
         elif givenTimezone == 'NT': # Newfoundland Time
-            givenTZ = timezone('Canada/Newfoundland')
+            givenTZ = pytz.timezone('Canada/Newfoundland')
         elif givenTimezone == 'ART': # Argentinian Time
-            givenTZ = timezone('America/Argentina/Buenos_Aires')
+            givenTZ = pytz.timezone('America/Argentina/Buenos_Aires')
         elif givenTimezone == 'BRT': # Brasilia Time
-            givenTZ = timezone('America/Sao_Paulo')
+            givenTZ = pytz.timezone('America/Sao_Paulo')
         elif givenTimezone == 'VET':
-            givenTZ = timezone('America/Caracas')
+            givenTZ = pytz.timezone('America/Caracas')
         elif givenTimezone == 'COT':
-            givenTZ = timezone('America/Bogota')
+            givenTZ = pytz.timezone('America/Bogota')
         elif givenTimezone in ('EET', 'EEST'): # Eastern European Time
-            givenTZ = timezone('Europe/Bucharest')
+            givenTZ = pytz.timezone('Europe/Bucharest')
         elif givenTimezone in ('MSK', 'MESZ', 'MSKS', 'MSD'): # Moscow Standard Time
-            givenTZ = timezone('Europe/Moscow')
+            givenTZ = pytz.timezone('Europe/Moscow')
         elif givenTimezone == 'GST':
-            givenTZ = timezone('Asia/Dubai')
+            givenTZ = pytz.timezone('Asia/Dubai')
         elif givenTimezone in ('YEKT','YEKST'):
-            givenTZ = timezone('Asia/Yekaterinburg')
+            givenTZ = pytz.timezone('Asia/Yekaterinburg')
         elif givenTimezone in ('KRAT','KRAST'):
-            givenTZ = timezone('Asia/Krasnoyarsk')
+            givenTZ = pytz.timezone('Asia/Krasnoyarsk')
         elif givenTimezone == 'IST': # India Standard Time
-            givenTZ = timezone('Asia/Kolkata')
+            givenTZ = pytz.timezone('Asia/Kolkata')
         elif givenTimezone == 'ICT':
-            givenTZ = timezone('Asia/Bangkok')
+            givenTZ = pytz.timezone('Asia/Bangkok')
         elif givenTimezone == 'CCT': # China Coast Time
-            givenTZ = timezone('Australia/West')
+            givenTZ = pytz.timezone('Australia/West')
         elif givenTimezone == 'JST': # Japan Standard Time
-            givenTZ = timezone('Asia/Tokyo')
+            givenTZ = pytz.timezone('Asia/Tokyo')
         elif givenTimezone in ('AWST', 'AWT'):  # Australian Western Standard Time
-            givenTZ = timezone('Australia/West')
+            givenTZ = pytz.timezone('Australia/West')
         elif givenTimezone in ('ACST', 'ACT'): # Australian Central Standard Time
-            givenTZ = timezone('Australia/Darwin')
+            givenTZ = pytz.timezone('Australia/Darwin')
         elif givenTimezone in ('AEST', 'AET'): # Australian Eastern Standard Time
             # Each State on the East Coast has different DSTs.
             # Melbournce is out because I don't like AFL, Queensland doesn't have DST
             # ACT is full of politicians and Tasmania will never notice.
             # Using Sydney. 
-            givenTZ = timezone('Australia/Sydney')
+            givenTZ = pytz.timezone('Australia/Sydney')
         elif givenTimezone == 'NZT': # New Zealand Time
-            givenTZ = timezone('Pacific/Auckland')
+            givenTZ = pytz.timezone('Pacific/Auckland')
         elif givenTimezone == 'UTC': # Universal time co-ordinated
             givenTZ = pytz.UTC
 
