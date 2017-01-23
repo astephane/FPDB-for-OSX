@@ -62,6 +62,126 @@ class HandHistoryConverter():
     copyGameHeader = False
     summaryInFile  = False
 
+    TIMEZONES = {
+        "ET" : "US/Eastern",
+        "EST" : "US/Eastern",
+        "EDT" : "US/Eastern",
+        #
+        # since CEST will only be used in summer time it's ok to treat it as
+        # identical to CET.
+        #
+        # Note: Daylight Saving Time is standardised across the EU so this should
+        # be fine
+        "CET" : "Europe/Berlin",
+        "CEST" : "Europe/Berlin",
+        "MEZ" : "Europe/Berlin",
+        "MESZ" : "Europe/Berlin",
+        "HAEC" : "Europe/Berlin",
+        #
+        # GMT is always the same as UTC
+        #
+        # GMT cannot be treated as WET because some HH's are explicitly
+        # GMT+-delta so would be incorrect during the summertime if substituted
+        # as WET+-delta
+        "GMT" : "GMT",
+        "BST" : "Europe/London",
+        #
+        # WET is GMT with daylight saving delta
+        "WET" : "WET",
+        #
+        # Hawaiian Standard Time
+        "HT" : "US/Hawaii",
+        "HST" : "US/Hawaii",
+        "HDT" : "US/Hawaii",
+        #
+        # Alaska Time
+        "AKT" : "US/Alaska",
+        #
+        # Pacific Time
+        "PT" : "US/Pacific",
+        "PST" : "US/Pacific",
+        "PDT" : "US/Pacific",
+        #
+        # Mountain Time
+        "MT" : "US/Mountain",
+        "MST" : "US/Mountain",
+        "MDT" : "US/Mountain",
+        #
+        # Central Time
+        "CT" : "US/Central",
+        "CST" : "US/Central",
+        "CDT" : "US/Central",
+        #
+        # Atlantic Time
+        "AT" : "Canada/Atlantic",
+        #
+        # Newfoundland Time
+        "NT" : "Canada/Newfoundland",
+        #
+        # Argentinian Time
+        "ART" : "Canada/Atlantic",
+        #
+        # Brasilian Time
+        "BRT" : "America/Sao_Paulo",
+        #
+        "VET" : "America/Caracas",
+        "COT" : "COT",
+        #
+        # Eastern European Time
+        "EET" : "Europe/Bucharest",
+        "EEST" : "Europe/Bucharest",
+        #
+        # Moscow Standard Time
+        "MSK" : "Europe/Moscow",
+        "MESZ" : "Europe/Moscow",
+        "MSKS" : "Europe/Moscow",
+        "MSD" : "Europe/Moscow",
+        #
+        "GST" : "Asia/Dubai",
+        #
+        "YEKT" : "Asia/Yekaterinburg",
+        "YEKST" : "Asia/Yekaterinburg",
+        #
+        "KRAT" : "Asia/Krasnoyarsk",
+        "KRAST" : "Asia/Krasnoyarsk",
+        #
+        # India Standard Time
+        "IST" : "Asia/Kolkata",
+        #
+        "ICT" : "Asia/Bangkok",
+        #
+        # China Coast Time
+        "CCT" : "Australia/West",
+        #
+        # Japan Standard Time
+        "Asia/Tokyo" : "Asia/Tokyo",
+        #
+        # Australian Western Standard Time
+        "AWST" : "Australia/West",
+        "AWT" : "Australia/West",
+        #
+        # Australian Central Standard Time
+        "ACST" : "Australia/Darwin",
+        "ACT" : "Australia/Darwin",
+        #
+        # Australian Eastern Standard Time
+        #
+        # Each State on the East Coast has different DSTs.
+        # Melbournce is out because I don't like AFL, Queensland doesn't have DST
+        # ACT is full of politicians and Tasmania will never notice.
+        # Using Sydney.
+        #
+        # Note (astephane): Above comment is copy-pasted from original author one.
+        "AEST" : "Australia/Sydney",
+        "AET" : "Australia/Sydney",
+        #
+        # New Zealand Time
+        "NZT" : "Pacific/Auckland",
+        #
+        # Universal time co-ordinated
+        "UTC" : "UTC",
+    }
+
     # maybe archive params should be one archive param, then call method in specific converter.   if archive:  convert_archive()
     def __init__( self, config, in_path = '-', out_path = '-', index=0
                 , autostart=True, starsArchive=False, ftpArchive=False, sitename="PokerStars"):
@@ -532,108 +652,41 @@ or None if we fail to get the info """
         return self.tourney
 
     @staticmethod
-    def changeTimezone(time, givenTimezone, wantedTimezone):
+    def changeTimezone( time, src_tz, dst_tz ):
         """Takes a givenTimezone in format AAA or AAA+HHMM where AAA is a standard timezone
            and +HHMM is an optional offset (+/-) in hours (HH) and minutes (MM)
            (See OnGameToFpdb.py for example use of the +HHMM part)
            Tries to convert the time parameter (with no timezone) from the givenTimezone to 
            the wantedTimeZone (currently only allows "UTC")
         """
-        #log.debug("raw time: " + str(time) + " given time zone: " + str(givenTimezone))
-        if wantedTimezone=="UTC":
-            wantedTimezone = pytz.utc
-        else:
-            log.error(_("Unsupported target timezone: ") + givenTimezone)
-            raise FpdbParseError(_("Unsupported target timezone: ") + givenTimezone)
 
-        givenTZ = None
-        if HandHistoryConverter.re_tzOffset.match(givenTimezone):
-            offset = int(givenTimezone[-5:])
-            givenTimezone = givenTimezone[0:-5]
-            #log.debug("changeTimeZone: offset=") + str(offset))
-        else: offset=0
+        # Extract time offset from timezone string.
+        if HandHistoryConverter.re_tzOffset.match( tz_str ):
+            tz_ofs = int( tz_str[ -5: ] )
+            tz_str = tz_str[ 0 : -5 ]
+        #endef
 
-        if givenTimezone in ("ET", "EST", "EDT"):
-            givenTZ = pytz.timezone('US/Eastern')
-        elif givenTimezone in ("CET", "CEST", "MEZ", "MESZ", "HAEC"):
-            #since CEST will only be used in summer time it's ok to treat it as identical to CET.
-            givenTZ = pytz.timezone('Europe/Berlin')
-            #Note: Daylight Saving Time is standardised across the EU so this should be fine
-        elif givenTimezone == 'GMT': # GMT is always the same as UTC
-            givenTZ = pytz.timezone('GMT')
-            # GMT cannot be treated as WET because some HH's are explicitly
-            # GMT+-delta so would be incorrect during the summertime 
-            # if substituted as WET+-delta
-        elif givenTimezone == 'BST':
-             givenTZ = pytz.timezone('Europe/London')
-        elif givenTimezone == 'WET': # WET is GMT with daylight saving delta
-            givenTZ = pytz.timezone('WET')
-        elif givenTimezone in ('HT', 'HST', 'HDT'): # Hawaiian Standard Time
-            givenTZ = pytz.timezone('US/Hawaii')
-        elif givenTimezone == 'AKT': # Alaska Time
-            givenTZ = pytz.timezone('US/Alaska')
-        elif givenTimezone in ('PT', 'PST', 'PDT'): # Pacific Time
-            givenTZ = pytz.timezone('US/Pacific')
-        elif givenTimezone in ('MT', 'MST', 'MDT'): # Mountain Time
-            givenTZ = pytz.timezone('US/Mountain')
-        elif givenTimezone in ('CT', 'CST', 'CDT'): # Central Time
-            givenTZ = pytz.timezone('US/Central')
-        elif givenTimezone == 'AT': # Atlantic Time
-            givenTZ = pytz.timezone('Canada/Atlantic')
-        elif givenTimezone == 'NT': # Newfoundland Time
-            givenTZ = pytz.timezone('Canada/Newfoundland')
-        elif givenTimezone == 'ART': # Argentinian Time
-            givenTZ = pytz.timezone('America/Argentina/Buenos_Aires')
-        elif givenTimezone == 'BRT': # Brasilia Time
-            givenTZ = pytz.timezone('America/Sao_Paulo')
-        elif givenTimezone == 'VET':
-            givenTZ = pytz.timezone('America/Caracas')
-        elif givenTimezone == 'COT':
-            givenTZ = pytz.timezone('America/Bogota')
-        elif givenTimezone in ('EET', 'EEST'): # Eastern European Time
-            givenTZ = pytz.timezone('Europe/Bucharest')
-        elif givenTimezone in ('MSK', 'MESZ', 'MSKS', 'MSD'): # Moscow Standard Time
-            givenTZ = pytz.timezone('Europe/Moscow')
-        elif givenTimezone == 'GST':
-            givenTZ = pytz.timezone('Asia/Dubai')
-        elif givenTimezone in ('YEKT','YEKST'):
-            givenTZ = pytz.timezone('Asia/Yekaterinburg')
-        elif givenTimezone in ('KRAT','KRAST'):
-            givenTZ = pytz.timezone('Asia/Krasnoyarsk')
-        elif givenTimezone == 'IST': # India Standard Time
-            givenTZ = pytz.timezone('Asia/Kolkata')
-        elif givenTimezone == 'ICT':
-            givenTZ = pytz.timezone('Asia/Bangkok')
-        elif givenTimezone == 'CCT': # China Coast Time
-            givenTZ = pytz.timezone('Australia/West')
-        elif givenTimezone == 'JST': # Japan Standard Time
-            givenTZ = pytz.timezone('Asia/Tokyo')
-        elif givenTimezone in ('AWST', 'AWT'):  # Australian Western Standard Time
-            givenTZ = pytz.timezone('Australia/West')
-        elif givenTimezone in ('ACST', 'ACT'): # Australian Central Standard Time
-            givenTZ = pytz.timezone('Australia/Darwin')
-        elif givenTimezone in ('AEST', 'AET'): # Australian Eastern Standard Time
-            # Each State on the East Coast has different DSTs.
-            # Melbournce is out because I don't like AFL, Queensland doesn't have DST
-            # ACT is full of politicians and Tasmania will never notice.
-            # Using Sydney. 
-            givenTZ = pytz.timezone('Australia/Sydney')
-        elif givenTimezone == 'NZT': # New Zealand Time
-            givenTZ = pytz.timezone('Pacific/Auckland')
-        elif givenTimezone == 'UTC': # Universal time co-ordinated
-            givenTZ = pytz.UTC
+        src_pytz = TIMEZONES.get( dst_tz, None )
 
-        if givenTZ is None:
-            # do not crash if timezone not in list, just return UTC localized time
-            log.error(_("Timezone conversion not supported") + ": " + givenTimezone + " " + str(time))
-            givenTZ = pytz.UTC
-            return givenTZ.localize(time)
+        # do not crash if timezone not in list, just return UTC localized time...
+        if src_pytz is None:
+            log.error( _( "Timezone conversion not supported" ) +
+                        # typography of semi-colon is different depending on
+                        # language.
+                       _( ": " ) +
+                       src_tz + " " + str( time ) )
 
-        localisedTime = givenTZ.localize(time)
-        utcTime = localisedTime.astimezone(wantedTimezone) + datetime.timedelta(seconds=-3600*(offset/100)-60*(offset%100))
-        #log.debug("utcTime: " + str(utcTime))
-        return utcTime
-    #end @staticmethod def changeTimezone
+            return pytz.UTC.localize( time )
+
+        # ...Otherwise
+        return \
+            pytz.timezone( src_pytz ) \
+                .localize( time ) \
+                .astimezone( dst_tz ) + \
+            datetime.timedelta( seconds =
+                                -3600 * ( offset / 100 ) -
+                                60 * ( offset % 100 ) )
+    #endef @staticmethod changeTimezone
 
     @staticmethod
     def getTableTitleRe(type, table_name=None, tournament = None, table_number=None):
