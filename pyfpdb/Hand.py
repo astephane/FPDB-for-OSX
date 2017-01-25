@@ -34,6 +34,8 @@ import Configuration
 from Exceptions import FpdbHandDuplicate, FpdbHandPartial, FpdbParseError
 import DerivedStats
 import Card
+import re
+
 Configuration.set_logfile("fpdb-log.txt")
 
 class Hand(object):
@@ -471,13 +473,25 @@ class Hand(object):
         # However a startTime is needed for a valid output by writeHand:
         # self.startTime = datetime.datetime.strptime("1970-01-01 12:00:00", "%Y-%m-%d %H:%M:%S")
         #
-        # (astephane) Answer: This is certainly due the timezone of the time of
-        # play compared to the locale timezome of the system
-        # (see https://doc.python.org/2/library/datetime.html?highlight=datetime#datetime.tzinfo)
-        #
         # (astephane) Just use the datetime object keeping time-zone info which
         # is helpfull to obtain locale date/time strings.
         self.startTime = res[ 'starttime' ]
+
+        # Strip leading +00:00 UTC offset string, if any, so that datetime string
+        # is compatible with datetime.strptime().
+        #
+        # Otherwise, strip the ':' in timezone suffix, if any, so that datetime
+        # string is compatible with %z and %Z formatter of datetime.strptime().
+        #
+        # Note: it seems that on some system %z and %Z are not recognized by
+        # strptime().
+        if self.startTime[ -6 : ]=="+00:00":
+            self.startTime = self.startTime[ 0 : -6 ]
+
+        elif re.match( r".*[+-]\d\d:\d\d$", self.startTime ):
+            self.startTime = self.startTime[ 0 : -3 ] + self.startTime[ -2 : ]
+
+        print "(astephane)", self.startTime
 
         cards = map(Card.valueSuitFromCard, [res['boardcard1'], res['boardcard2'], res['boardcard3'], res['boardcard4'], res['boardcard5']])
         if cards[0]:
