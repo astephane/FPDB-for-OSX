@@ -16,6 +16,7 @@
 #In the "official" distribution you can find the license in agpl-3.0.txt.
 
 import L10n
+
 _ = L10n.get_translation()
 
 import re
@@ -32,6 +33,7 @@ from xml.dom.minidom import Node
 
 import time
 import datetime
+from dateutil import tz
 
 import pytz
 
@@ -652,6 +654,44 @@ or None if we fail to get the info """
         return self.tourney
 
     @staticmethod
+    def str_to_tzinfo( tz_str ):
+        """Return tzinfo from given timezone string.
+        """
+        # If providing None, return UTC timezone by default.
+        if tz_str is None:
+            return tz.tzutc()
+
+        # Otherwise, tz must be of str type.
+        # assert tz_str is str
+
+        # In case, local timezone is required.
+        if tz_str.lower()=="local":
+            return tz.tzlocal()
+
+        # Otherwise, search registered timezones.
+        tzi = pytz.timezone( TIMEZONES.get( tz_str, None ) )
+
+        # If not found, return UTC by default.
+        if tzi is None:
+            return tz.tzutc()
+
+        # Otherwise, return required timezone.
+        return tzi
+    #endef
+
+    @staticmethod
+    def as_timezone( dt, src_tz, dst_tz ):
+        """Return aware datetime in destination timezone given naive datetime expressed in source timezone.
+        """
+
+        # Make aware datetime from naive datetime in source timezone.
+        dt = dt.replace( tzinfo = HandHistoryConverter.str_to_tzinfo( src_tz ) )
+
+        # Return shifted & aware datetime.
+        return dt.astimezone( HandHistoryConverter.str_to_tzinfo( dst_tz ) )
+    #endef
+
+    @staticmethod
     def changeTimezone( time, src_tz, dst_tz ):
         """Takes a givenTimezone in format AAA or AAA+HHMM where AAA is a standard timezone
            and +HHMM is an optional offset (+/-) in hours (HH) and minutes (MM)
@@ -666,7 +706,7 @@ or None if we fail to get the info """
             tz_str = tz_str[ 0 : -5 ]
         #endef
 
-        src_pytz = TIMEZONES.get( dst_tz, None )
+        src_pytz = TIMEZONES.get( src_tz, None )
 
         # do not crash if timezone not in list, just return UTC localized time...
         if src_pytz is None:
@@ -768,3 +808,9 @@ def get_out_fh(out_path, parameters):
             log.error(_("Output path %s couldn't be opened.") % (out_path)) 
     else:
         return(sys.stdout)
+
+if __name__ == '__main__':
+    dt = datetime.datetime.utcnow()
+    print "UTC datetime:", dt
+    dt = HandHistoryConverter.as_timezone( dt, None, 'local' )
+    print "Local datetime:", dt
