@@ -218,11 +218,7 @@ class GuiHandViewer(QSplitter):
         gt =  hand.gametype['category']
         # TODO: localize start-time from database UTC time.
         # startTime = hand.startTime
-        print hand.startTime, type( hand.startTime )
-        startTime = Hand.Hand.as_timezone(
-            datetime.datetime.strptime( hand.startTime, "%Y-%m-%d %H:%M:%S" ),
-            None,
-            'local' ).strftime( "%Y-%m-%d %H:%M:%S" )
+        startTime = Hand.Hand.as_timezone_str( hand.startTime )
 
         row = []
 
