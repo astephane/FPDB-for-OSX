@@ -26,6 +26,9 @@ import datetime
 from string import upper
 import pprint
 
+import datetime
+from dateutil import tz
+
 import logging
 # logging has been set up in fpdb.py or HUD_main.py, use their settings:
 log = logging.getLogger("parser")
@@ -45,6 +48,126 @@ class Hand(object):
     MS = {'horse' : 'HORSE', '8game' : '8-Game', 'hose'  : 'HOSE', 'ha': 'HA'}
     ACTION = {'ante': 1, 'small blind': 2, 'secondsb': 3, 'big blind': 4, 'both': 5, 'calls': 6, 'raises': 7,
               'bets': 8, 'stands pat': 9, 'folds': 10, 'checks': 11, 'discards': 12, 'bringin': 13, 'completes': 14}
+
+    TIMEZONES = {
+        "ET" : "US/Eastern",
+        "EST" : "US/Eastern",
+        "EDT" : "US/Eastern",
+        #
+        # since CEST will only be used in summer time it's ok to treat it as
+        # identical to CET.
+        #
+        # Note: Daylight Saving Time is standardised across the EU so this should
+        # be fine
+        "CET" : "Europe/Berlin",
+        "CEST" : "Europe/Berlin",
+        "MEZ" : "Europe/Berlin",
+        "MESZ" : "Europe/Berlin",
+        "HAEC" : "Europe/Berlin",
+        #
+        # GMT is always the same as UTC
+        #
+        # GMT cannot be treated as WET because some HH's are explicitly
+        # GMT+-delta so would be incorrect during the summertime if substituted
+        # as WET+-delta
+        "GMT" : "GMT",
+        "BST" : "Europe/London",
+        #
+        # WET is GMT with daylight saving delta
+        "WET" : "WET",
+        #
+        # Hawaiian Standard Time
+        "HT" : "US/Hawaii",
+        "HST" : "US/Hawaii",
+        "HDT" : "US/Hawaii",
+        #
+        # Alaska Time
+        "AKT" : "US/Alaska",
+        #
+        # Pacific Time
+        "PT" : "US/Pacific",
+        "PST" : "US/Pacific",
+        "PDT" : "US/Pacific",
+        #
+        # Mountain Time
+        "MT" : "US/Mountain",
+        "MST" : "US/Mountain",
+        "MDT" : "US/Mountain",
+        #
+        # Central Time
+        "CT" : "US/Central",
+        "CST" : "US/Central",
+        "CDT" : "US/Central",
+        #
+        # Atlantic Time
+        "AT" : "Canada/Atlantic",
+        #
+        # Newfoundland Time
+        "NT" : "Canada/Newfoundland",
+        #
+        # Argentinian Time
+        "ART" : "Canada/Atlantic",
+        #
+        # Brasilian Time
+        "BRT" : "America/Sao_Paulo",
+        #
+        "VET" : "America/Caracas",
+        "COT" : "COT",
+        #
+        # Eastern European Time
+        "EET" : "Europe/Bucharest",
+        "EEST" : "Europe/Bucharest",
+        #
+        # Moscow Standard Time
+        "MSK" : "Europe/Moscow",
+        "MESZ" : "Europe/Moscow",
+        "MSKS" : "Europe/Moscow",
+        "MSD" : "Europe/Moscow",
+        #
+        "GST" : "Asia/Dubai",
+        #
+        "YEKT" : "Asia/Yekaterinburg",
+        "YEKST" : "Asia/Yekaterinburg",
+        #
+        "KRAT" : "Asia/Krasnoyarsk",
+        "KRAST" : "Asia/Krasnoyarsk",
+        #
+        # India Standard Time
+        "IST" : "Asia/Kolkata",
+        #
+        "ICT" : "Asia/Bangkok",
+        #
+        # China Coast Time
+        "CCT" : "Australia/West",
+        #
+        # Japan Standard Time
+        "Asia/Tokyo" : "Asia/Tokyo",
+        #
+        # Australian Western Standard Time
+        "AWST" : "Australia/West",
+        "AWT" : "Australia/West",
+        #
+        # Australian Central Standard Time
+        "ACST" : "Australia/Darwin",
+        "ACT" : "Australia/Darwin",
+        #
+        # Australian Eastern Standard Time
+        #
+        # Each State on the East Coast has different DSTs.
+        # Melbournce is out because I don't like AFL, Queensland doesn't have DST
+        # ACT is full of politicians and Tasmania will never notice.
+        # Using Sydney.
+        #
+        # Note (astephane): Above comment is copy-pasted from original author one.
+        "AEST" : "Australia/Sydney",
+        "AET" : "Australia/Sydney",
+        #
+        # New Zealand Time
+        "NZT" : "Pacific/Auckland",
+        #
+        # Universal time co-ordinated
+        "UTC" : "UTC",
+    }
 
 
     def __init__(self, config, sitename, gametype, handText, builtFrom = "HHC"):
@@ -233,6 +356,44 @@ class Hand(object):
         for (name, struct) in structs:
             result = result + "\n%s =\n" % name + pprint.pformat(struct, 4)
         return result
+
+    @staticmethod
+    def str_to_tzinfo( tz_str ):
+        """Return tzinfo from given timezone string.
+        """
+        # If providing None, return UTC timezone by default.
+        if tz_str is None:
+            return tz.tzutc()
+
+        # Otherwise, tz must be of str type.
+        # assert tz_str is str
+
+        # In case, local timezone is required.
+        if tz_str.lower()=="local":
+            return tz.tzlocal()
+
+        # Otherwise, search registered timezones.
+        tzi = pytz.timezone( Hand.TIMEZONES.get( tz_str, None ) )
+
+        # If not found, return UTC by default.
+        if tzi is None:
+            return tz.tzutc()
+
+        # Otherwise, return required timezone.
+        return tzi
+    #endef
+
+    @staticmethod
+    def as_timezone( dt, src_tz, dst_tz ):
+        """Return aware datetime in destination timezone given naive datetime expressed in source timezone.
+        """
+
+        # Make aware datetime from naive datetime in source timezone.
+        dt = dt.replace( tzinfo = Hand.str_to_tzinfo( src_tz ) )
+
+        # Return shifted & aware datetime.
+        return dt.astimezone( Hand.str_to_tzinfo( dst_tz ) )
+    #endef
 
     def addHoleCards(self, street, player, open=[], closed=[], shown=False, mucked=False, dealt=False):
         """ Assigns observed holecards to a player.
@@ -1947,3 +2108,9 @@ def hand_factory(hand_id, config, db_connection):
     return hand_instance
 
 
+
+if __name__ == '__main__':
+    dt = datetime.datetime.utcnow()
+    print "UTC datetime:", dt
+    dt = Hand.as_timezone( dt, None, 'local' )
+    print "Local datetime:", dt
