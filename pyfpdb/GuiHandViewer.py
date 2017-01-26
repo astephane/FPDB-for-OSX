@@ -24,6 +24,9 @@ _ = L10n.get_translation()
 
 from functools import partial
 
+import datetime
+import time
+
 import Hand
 import Card
 import Configuration
@@ -213,7 +216,13 @@ class GuiHandViewer(QSplitter):
         net = won - bet
         pos = hand.get_player_position(hero)
         gt =  hand.gametype['category']
-        startTime = hand.startTime
+        # TODO: localize start-time from database UTC time.
+        # startTime = hand.startTime
+        print hand.startTime, type( hand.startTime )
+        startTime = Hand.Hand.as_timezone(
+            datetime.datetime.strptime( hand.startTime, "%Y-%m-%d %H:%M:%S" ),
+            None,
+            'local' ).strftime( "%Y-%m-%d %H:%M:%S" )
 
         row = []
 
