@@ -384,7 +384,7 @@ class Hand(object):
     #endef
 
     @staticmethod
-    def as_timezone( dt, src_tz, dst_tz ):
+    def as_timezone( dt, src_tz=None, dst_tz='local' ):
         """Return aware datetime in destination timezone given naive datetime expressed in source timezone.
         """
 
@@ -393,6 +393,17 @@ class Hand(object):
 
         # Return shifted & aware datetime.
         return dt.astimezone( Hand.str_to_tzinfo( dst_tz ) )
+    #endef
+
+    @staticmethod
+    def as_timezone_str( dt_str,
+                         src_tz=None,
+                         dst_tz='local',
+                         dt_format="%Y-%m-%d %H:%M:%S" ):
+        return Hand.as_timezone(
+            datetime.datetime.strptime( dt_str, dt_format ),
+            src_tz,
+            dst_tz ).strftime( dt_format )
     #endef
 
     def addHoleCards(self, street, player, open=[], closed=[], shown=False, mucked=False, dealt=False):
