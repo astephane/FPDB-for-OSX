@@ -663,8 +663,6 @@ class Hand(object):
         elif re.match( r".*[+-]\d\d:\d\d$", self.startTime ):
             self.startTime = self.startTime[ 0 : -3 ] + self.startTime[ -2 : ]
 
-        print "(astephane)", self.startTime
-
         cards = map(Card.valueSuitFromCard, [res['boardcard1'], res['boardcard2'], res['boardcard3'], res['boardcard4'], res['boardcard5']])
         if cards[0]:
             self.setCommunityCards('FLOP', cards[0:3])
