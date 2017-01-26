@@ -635,7 +635,12 @@ class Hand(object):
         self.handid    = res['sitehandno']
         # FIXME: Need to figure out why some times come out of the DB as %Y-%m-%d %H:%M:%S+00:00,
         #        and others as %Y-%m-%d %H:%M:%S
-        
+        #
+        # (astephane): When ther's a +HH:MM timezone suffix, it means the
+        # datetime object is aware (e.g. +00:00 meaning the datetime is aware
+        # that it is in UTC timezone). Otherwise, the datetime is naive and the
+        # timezone info is missing, being local, UTC or wathever, noone knows.
+
         # self.startTime currently unused in the replayer and commented out.
         #    Can't be done like this because not all dbs return the same type for starttime
         #try:
