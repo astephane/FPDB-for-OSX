@@ -258,13 +258,27 @@ class GuiHandViewer(QSplitter):
         modelrow = [QStandardItem(r) for r in row]
         for index, item in enumerate(modelrow):
             item.setEditable(False)
+
             if index in (self.colnum['Street0'], self.colnum['Street1-4']):
                 cards = item.data(Qt.DisplayRole)
                 item.setData(self.render_cards(cards), Qt.DecorationRole)
                 item.setData("", Qt.DisplayRole)
                 item.setData(cards, Qt.UserRole + 1)
-            if index in (self.colnum['Bet'], self.colnum['Net'], self.colnum['Won']):
-                item.setData(float(item.data(Qt.DisplayRole)), Qt.UserRole)
+
+            # Floats
+            if index in ( self.colnum[ 'Bet' ],
+                          self.colnum[ 'Net' ],
+                          self.colnum[ 'Won' ] ):
+                item.setData( float( item.data( Qt.DisplayRole ) ), Qt.UserRole )
+
+            # Integers
+            if index in ( self.colnum[ 'HandId' ], ):
+                item.setData( int( item.data( Qt.DisplayRole ) ), Qt.UserRole )
+
+            # Strings
+            if index in ( self.colnum[ 'Date' ], ):
+                item.setData( item.data( Qt.DisplayRole ), Qt.UserRole )
+
         self.model.appendRow(modelrow)
 
     def copyHandToClipboard(self, checkState, hand):
