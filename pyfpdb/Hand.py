@@ -28,6 +28,7 @@ import pprint
 
 import datetime
 from dateutil import tz
+import pytz
 
 import logging
 # logging has been set up in fpdb.py or HUD_main.py, use their settings:
@@ -399,11 +400,12 @@ class Hand(object):
     def as_timezone_str( dt_str,
                          src_tz=None,
                          dst_tz='local',
-                         dt_format="%Y-%m-%d %H:%M:%S" ):
+                         src_format="%Y-%m-%d %H:%M:%S",
+                         dst_format="%Y/%m/%d %H:%M:%S" ):
         return Hand.as_timezone(
-            datetime.datetime.strptime( dt_str, dt_format ),
+            datetime.datetime.strptime( dt_str, src_format ),
             src_tz,
-            dst_tz ).strftime( dt_format )
+            dst_tz ).strftime( dst_format )
     #endef
 
     def addHoleCards(self, street, player, open=[], closed=[], shown=False, mucked=False, dealt=False):
@@ -1231,7 +1233,18 @@ class Hand(object):
         # date/time format using datetime.datetime.tzinfo object to format the
         # string.
         try:
-            timestr = datetime.datetime.strftime(self.startTime, '%Y/%m/%d %H:%M:%S ET')
+            # Reformat UTC datetime string output from database to PokerStars
+            # format.
+            timestr = datetime.datetime.strptime(
+                self.startTime, '%Y-%m-%d %H:%M:%S'
+            ).strftime( '%Y/%m/%d %H:%M:%S UTC' )
+
+            print "UTC:", timestr
+
+            # Add optional ET datetime to string.
+            timestr += ' [' + Hand.as_timezone_str( self.startTime, None, 'ET' ) + '] ET'
+
+            print "UTC+ET:", timestr
         except TypeError:
             print _("*** ERROR - HAND: calling writeGameLine with unexpected STARTTIME value, expecting datetime.date object, received:"), self.startTime
             print _("*** Make sure your HandHistoryConverter is setting hand.startTime properly!")
