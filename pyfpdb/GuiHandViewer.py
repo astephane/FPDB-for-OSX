@@ -281,19 +281,36 @@ class GuiHandViewer(QSplitter):
 
         self.model.appendRow(modelrow)
 
-    def copyHandToClipboard(self, checkState, hand):
-        handText = StringIO()
-        hand.writeHand(handText)
-        QApplication.clipboard().setText(handText.getvalue())
+    def get_selected_hands( self ):
+        return map( lambda x : self.hands[ int( x.data() ) ],
+                    self.view.selectionModel().selectedRows( self.colnum[ 'HandId' ] ) )
 
-    def contextMenu(self, event):
-        index = self.view.currentIndex()
-        hand = self.hands[int(index.sibling(index.row(), self.colnum['HandId']).data())]
+    #endef
+
+    def write_hands_to_clipboard( self, hands, writer ):
+        text_buffer = StringIO()
+
+        for h in hands:
+            writer( h, text_buffer )
+
+        QApplication.clipboard().clear()
+        QApplication.clipboard().setText( text_buffer.getvalue() )        
+    #endef
+
+    def on_copy_action_PokerStars_triggered( self, checked ):
+        self.write_hands_to_clipboard( self.get_selected_hands(),
+                                       lambda h, t : h.writeHand( t ) )
+    #endef
+
+    def contextMenu( self, event ):
         m = QMenu()
-        copyAction = m.addAction('Copy to clipboard')
-        copyAction.triggered.connect(partial(self.copyHandToClipboard, hand=hand))
-        m.move(event.globalPos())
+
+        copy_action_PokerStars = m.addAction( 'Copy to clipboard (PokerStars)' )
+        copy_action_PokerStars.triggered.connect( self.on_copy_action_PokerStars_triggered )
+
+        m.move( event.globalPos() )
         m.exec_()
+    #endef
 
     def filter_cards_cb(self, card):
         if hasattr(self, 'hands'):
