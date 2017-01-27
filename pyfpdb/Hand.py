@@ -1239,17 +1239,15 @@ class Hand(object):
                 self.startTime, '%Y-%m-%d %H:%M:%S'
             ).strftime( '%Y/%m/%d %H:%M:%S UTC' )
 
-            print "UTC:", timestr
-
             # Add optional ET datetime to string.
             timestr += ' [' + Hand.as_timezone_str( self.startTime, None, 'ET' ) + '] ET'
 
-            print "UTC+ET:", timestr
         except TypeError:
             print _("*** ERROR - HAND: calling writeGameLine with unexpected STARTTIME value, expecting datetime.date object, received:"), self.startTime
             print _("*** Make sure your HandHistoryConverter is setting hand.startTime properly!")
             print _("*** Game String:"), gs
             return gs
+
         else:
             return gs + timestr
 
