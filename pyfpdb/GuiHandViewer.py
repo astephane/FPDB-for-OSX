@@ -293,6 +293,8 @@ class GuiHandViewer(QSplitter):
         for h in hands:
             writer( h, text_buffer )
 
+        print text_buffer.getvalue()
+
         QApplication.clipboard().clear()
         QApplication.clipboard().setText( text_buffer.getvalue() )        
     #endef
@@ -300,7 +302,7 @@ class GuiHandViewer(QSplitter):
     def on_copy_action_PartyPoker_triggered( self, checked ):
         # TODO: Replace call to PokerStars write with correct party-poker writer.
         self.write_hands_to_clipboard( self.get_selected_hands(),
-                                       lambda h, t : h.writeHand( t ) )
+                                       lambda h, t : h.writePartyPokerHand( t ) )
     #endef
 
     def on_copy_action_PokerStars_triggered( self, checked ):
@@ -312,10 +314,10 @@ class GuiHandViewer(QSplitter):
         m = QMenu()
 
         copy_action_PokerStars = m.addAction( 'Copy to clipboard (PokerStars)' )
-        copy_action_PokerStars = m.addAction( 'Copy to clipboard (PartyPoker)' )
+        copy_action_PartyPoker = m.addAction( 'Copy to clipboard (PartyPoker)' )
 
         copy_action_PokerStars.triggered.connect( self.on_copy_action_PokerStars_triggered )
-        copy_action_PokerStars.triggered.connect( self.on_copy_action_PartyPoker_triggered )
+        copy_action_PartyPoker.triggered.connect( self.on_copy_action_PartyPoker_triggered )
 
         m.move( event.globalPos() )
         m.exec_()
