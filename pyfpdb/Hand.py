@@ -1132,6 +1132,24 @@ class Hand(object):
         retstring = "%s %s" %(gs[self.gametype['category']], ls[self.gametype['limitType']])
         return retstring
 
+
+    def getPartyPokerGameType( self ):
+        game_type = { "holdem" : "Texas Hold'em",
+                      "omahahi" : "Omaha",
+                      "omahahilo" : "Omaha Hi/Lo",
+                      "razz" : "Razz",
+                      "studhi" : "7 Card Stud",
+                      "studhilo" : "7 Card Stud Hi/Lo",
+                      "fivedraw" : "5 Card Draw",
+                      "27_1draw" : "Single Draw 2-7 Lowball",
+                      "27_3draw" : "Triple Draw 2-7 Lowball",
+                      "5_studhi" : "5 Card Stud",
+                      "badugi" : "Badugi" }
+
+        return "%s %s" % ( self.gametype[ 'limitType' ].upper(),
+                           game_type[ self.gametype[ 'category' ] ] )
+    #endef
+
     def printHand(self):
         self.writeHand(sys.stdout)
 
@@ -1268,6 +1286,31 @@ class Hand(object):
         # PokerStars format.
         print >>fh, self.writeGameLine()
         print >>fh, self.writeTableLine()
+
+
+    def writePartyPokerHand( self, fh = sys.__stdout__ ):
+        self.writePartyPokerGame( fh )
+        self.writePartyPokerTable( fh )
+    #endef
+
+    def writePartyPokerGame( self, fh ):
+        print >> fh, "Game #%s starts.\n" % self.handid
+
+        print >> fh, "#Game No : %s" % self.handid
+        print >> fh, "***** Hand History for Game %s *****" % self.handid
+
+        print >> fh, "%s %s - %s" % ( self.getStakesAsString(),
+                                      self.getPartyPokerGameType(),
+                                      datetime.datetime.strptime(
+                                          self.startTime,
+                                          '%Y-%m-%d %H:%M:%S'
+                                      ).strftime( '%A, %B %d, %H:%M:%S UTC %Y' ) )
+    #endef
+
+    def writePartyPokerTable( self, fh ):
+        pass
+    #endef
+#endclass
 
 
 class HoldemOmahaHand(Hand):
