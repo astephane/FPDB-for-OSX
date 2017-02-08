@@ -1314,7 +1314,19 @@ class Hand(object):
     #endef
 
     def writePartyPokerTable( self, fh ):
-        pass
+        money = ""
+
+        if self.gametype[ 'currency' ]=="play":
+            money = "Play Money"
+        else:
+            money = "Real Money"
+
+        print >> fh, "Table %s (%s)" % ( self.tablename, money )
+
+        print >> fh, "Seat %s is the button" % self.buttonpos
+
+        print >> fh, "Total number of players : %s/%s" % ( self.counted_seats,
+                                                           self.maxseats )
     #endef
 #endclass
 
