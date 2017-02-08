@@ -1551,6 +1551,13 @@ class HoldemOmahaHand(Hand):
                     print >>fh, ("Seat %d: %s mucked" % (seatnum, name))
 
         print >>fh, "\n\n"
+    #endef
+
+    def writePartyPokerHand( self, fh ):
+        super( HoldemOmahaHand, self ).writePartyPokerHand( fh )
+    #endef
+
+#endclass
 
 class DrawHand(Hand):
     def __init__(self, config, hhc, sitename, gametype, handText, builtFrom = "HHC", handid=None):
