@@ -1299,12 +1299,18 @@ class Hand(object):
         print >> fh, "#Game No : %s" % self.handid
         print >> fh, "***** Hand History for Game %s *****" % self.handid
 
-        print >> fh, "%s %s - %s" % ( self.getStakesAsString(),
-                                      self.getPartyPokerGameType(),
-                                      datetime.datetime.strptime(
-                                          self.startTime,
-                                          '%Y-%m-%d %H:%M:%S'
-                                      ).strftime( '%A, %B %d, %H:%M:%S UTC %Y' ) )
+        currency = ""
+
+        if self.gametype[ 'currency' ]!="play":
+            currency = " " + self.gametype[ 'currency' ]
+
+        print >> fh, "%s%s %s - %s" % ( self.getStakesAsString(),
+                                        currency,
+                                        self.getPartyPokerGameType(),
+                                        datetime.datetime.strptime(
+                                            self.startTime,
+                                            '%Y-%m-%d %H:%M:%S'
+                                        ).strftime( '%A, %B %d, %H:%M:%S UTC %Y' ) )
     #endef
 
     def writePartyPokerTable( self, fh ):
