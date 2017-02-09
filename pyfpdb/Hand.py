@@ -1325,10 +1325,7 @@ class Hand(object):
 
         print >> fh, "Seat %s is the button" % self.buttonpos
 
-        players = { x[ 0 ] for x in self.actions[ 'PREFLOP' ] }
-        players |= { x[ 0 ] for x in self.actions[ 'BLINDSANTES' ] }
-
-        print >> fh, "Total number of players : %s/%s" % ( len( players ),
+        print >> fh, "Total number of players : %s/%s" % ( len( self.players ),
                                                            self.maxseats )
     #endef
 #endclass
@@ -1559,6 +1556,7 @@ class HoldemOmahaHand(Hand):
     def writePartyPokerHand( self, fh ):
         super( HoldemOmahaHand, self ).writePartyPokerHand( fh )
 
+        print self.players
         print self.actions[ 'PREFLOP' ]
         print self.actions[ 'BLINDSANTES' ]
     #endef
