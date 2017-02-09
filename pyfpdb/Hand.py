@@ -649,7 +649,7 @@ class Hand(object):
         #    self.startTime = datetime.datetime.strptime(res['starttime'], "%Y-%m-%d %H:%M:%S+00:00")
         #except ValueError:
         #    self.startTime = datetime.datetime.strptime(res['starttime'], "%Y-%m-%d %H:%M:%S")
-        # However a startTime is needed for a valid output by writeHand:
+        # However a startTime is needed for a valid output by witeHand:
         # self.startTime = datetime.datetime.strptime("1970-01-01 12:00:00", "%Y-%m-%d %H:%M:%S")
         #
         # (astephane) Just use the datetime object keeping time-zone info which
@@ -1325,7 +1325,10 @@ class Hand(object):
 
         print >> fh, "Seat %s is the button" % self.buttonpos
 
-        print >> fh, "Total number of players : %s/%s" % ( self.counted_seats,
+        players = { x[ 0 ] for x in self.actions[ 'PREFLOP' ] }
+        players |= { x[ 0 ] for x in self.actions[ 'BLINDSANTES' ] }
+
+        print >> fh, "Total number of players : %s/%s" % ( len( players ),
                                                            self.maxseats )
     #endef
 #endclass
@@ -1555,6 +1558,9 @@ class HoldemOmahaHand(Hand):
 
     def writePartyPokerHand( self, fh ):
         super( HoldemOmahaHand, self ).writePartyPokerHand( fh )
+
+        print self.actions[ 'PREFLOP' ]
+        print self.actions[ 'BLINDSANTES' ]
     #endef
 
 #endclass
