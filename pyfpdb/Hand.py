@@ -1293,19 +1293,24 @@ class Hand(object):
         self.writePartyPokerTable( fh )
     #endef
 
+    def get_currency_suffix( self ):
+        if self.gametype[ 'currency' ]=="play":
+            return ""
+
+        return " " + self.gametype[ 'currency' ]
+    #endef
+
     def writePartyPokerGame( self, fh ):
         print >> fh, "Game #%s starts.\n" % self.handid
 
         print >> fh, "#Game No : %s" % self.handid
         print >> fh, "***** Hand History for Game %s *****" % self.handid
 
-        currency = ""
-
         if self.gametype[ 'currency' ]!="play":
             currency = " " + self.gametype[ 'currency' ]
 
         print >> fh, "%s%s %s - %s" % ( self.getStakesAsString(),
-                                        currency,
+                                        self.get_currency_suffix(),
                                         self.getPartyPokerGameType(),
                                         datetime.datetime.strptime(
                                             self.startTime,
@@ -1559,9 +1564,30 @@ class HoldemOmahaHand(Hand):
         print self.players
         print self.actions[ 'PREFLOP' ]
         print self.actions[ 'BLINDSANTES' ]
+
+        currency_suffix = self.get_currency_suffix()
+
+        for player in self.players:
+            print >> fh, "Seat %s: %s ( %s%.2f%s )" % (
+                player[ 0 ],
+                player[ 1 ],
+                self.sym,
+                float( player[ 2 ] ),
+                currency_suffix )
+        #endfor
+
+        for player in self.actions[ 'BLINDSANTES' ]:
+            print >> fh, "%s posts %s [%s%.2f%s]." % (
+                player[ 0 ],
+                player[ 1 ],
+                self.sym,
+                float( player[ 2 ] ),
+                currency_suffix )
+        #endfor
     #endef
 
 #endclass
+
 
 class DrawHand(Hand):
     def __init__(self, config, hhc, sitename, gametype, handText, builtFrom = "HHC", handid=None):
