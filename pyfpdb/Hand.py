@@ -1155,7 +1155,7 @@ class Hand(object):
 
     def actionString(self, act, street=None):
         log.debug("Hand.actionString(act=%s, street=%s)", act, street)
-        
+
         if act[1] == 'folds':
             return ("%s: folds " %(act[0]))
         elif act[1] == 'checks':
@@ -1184,7 +1184,23 @@ class Hand(object):
                                              " [" + " ".join(self.discards[street][act[0]]) + "]" if self.hero == act[0] else ''))
         elif act[1] == 'stands pat':
             return ("%s: stands pat" %(act[0]))
-        
+
+    def get_PartyPoker_action( self, action ):
+        string = "%s %s" % ( action[ 0 ], action[ 1 ] )
+
+        if len( action )<=2:
+            return string
+
+        bet_raise = action[ 2 ]
+
+        if len( action )>=5:
+            bet_raise += action[ 4 ]
+
+        return string + " [%s%.2f%s]" % ( self.sym,
+                                          bet_raise,
+                                          self.get_currency_suffix() )
+    #endef
+
     def get_actions_short(self, player, street):
         """ Returns a string with shortcuts for the actions of the given player and the given street
             F ... fold, X ... Check, B ...Bet, C ... Call, R ... Raise
@@ -1561,12 +1577,17 @@ class HoldemOmahaHand(Hand):
     def writePartyPokerHand( self, fh ):
         super( HoldemOmahaHand, self ).writePartyPokerHand( fh )
 
-        print self.players
-        print self.actions[ 'PREFLOP' ]
-        print self.actions[ 'BLINDSANTES' ]
+        print "self.players =", self.players
+        print "self.actions =", self.actions
+        print "self.dealt =", self.dealt
+        print "self.holecards =", self.holecards
+        print "self.show =", self.shown
+        print
 
         currency_suffix = self.get_currency_suffix()
 
+        #
+        # Seats
         for player in self.players:
             print >> fh, "Seat %s: %s ( %s%.2f%s )" % (
                 player[ 0 ],
@@ -1576,6 +1597,8 @@ class HoldemOmahaHand(Hand):
                 currency_suffix )
         #endfor
 
+        #
+        # Blind/Antes
         for player in self.actions[ 'BLINDSANTES' ]:
             print >> fh, "%s posts %s [%s%.2f%s]." % (
                 player[ 0 ],
@@ -1584,6 +1607,21 @@ class HoldemOmahaHand(Hand):
                 float( player[ 2 ] ),
                 currency_suffix )
         #endfor
+
+        #
+        # Hole cards
+        print >> fh, "** Dealing down cards **"
+
+        for player in self.dealt:
+            print >> fh, "Dealt to %s [ %s ]" % (
+                player,
+                " ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] ) )
+        #endfor
+
+        #
+        # Preflop action.
+        for action in self.actions[ 'PREFLOP' ]:
+            print >> fh, self.get_PartyPoker_action( action )
     #endef
 
 #endclass
