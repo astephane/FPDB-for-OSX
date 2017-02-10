@@ -1622,6 +1622,18 @@ class HoldemOmahaHand(Hand):
         # Preflop action.
         for action in self.actions[ 'PREFLOP' ]:
             print >> fh, self.get_PartyPoker_action( action )
+        #endfor
+
+        #
+        # Flop action.
+        if self.board[ 'FLOP' ]:
+            print >> fh, "** Dealing Flop ** [ %s ]" % " ".join( self.board[ 'FLOP' ] )
+        #endif
+
+        for action in self.actions[ 'FLOP' ]:
+            print >> fh, self.get_PartyPoker_action( action )
+        #endfor
+
     #endef
 
 #endclass
