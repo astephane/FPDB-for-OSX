@@ -1595,7 +1595,14 @@ class HoldemOmahaHand(Hand):
         print "self.actions =", self.actions
         print "self.dealt =", self.dealt
         print "self.holecards =", self.holecards
-        print "self.show =", self.shown
+        print "self.shown =", self.shown
+        # print "self.pot =", str( self.pot )
+        print "self.collected =", self.collected
+        print "self.pot.returned =", self.pot.returned
+        print "self.board =", self.board
+        print "self.collectees =", self.collectees
+        print "self.mucked =", self.mucked
+        print "self.folded =", self.folded
         print
 
         currency_suffix = self.get_currency_suffix()
@@ -1642,6 +1649,22 @@ class HoldemOmahaHand(Hand):
         self.write_PartyPoker_street( 'TURN', fh )
         self.write_PartyPoker_street( 'RIVER', fh )
 
+        #
+        # Showdown.
+        for player in self.holecards[ 'PREFLOP' ]:
+            print >> fh, "%s shows [ %s ]A hand." % (
+                player,
+                ", ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] ) )
+        #endfor
+
+        #
+        # Results.
+        for (player, amount) in self.collected:
+            print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
+                player,
+                self.sym,
+                float( amount ),
+                currency_suffix )
     #endef
 
 #endclass
