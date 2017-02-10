@@ -1304,16 +1304,16 @@ class Hand(object):
         print >>fh, self.writeTableLine()
 
 
-    def writePartyPokerHand( self, fh = sys.__stdout__ ):
-        self.writePartyPokerGame( fh )
-        self.writePartyPokerTable( fh )
-    #endef
-
     def get_currency_suffix( self ):
         if self.gametype[ 'currency' ]=="play":
             return ""
 
         return " " + self.gametype[ 'currency' ]
+    #endef
+
+    def writePartyPokerHand( self, fh = sys.__stdout__ ):
+        self.writePartyPokerGame( fh )
+        self.writePartyPokerTable( fh )
     #endef
 
     def writePartyPokerGame( self, fh ):
@@ -1348,6 +1348,20 @@ class Hand(object):
 
         print >> fh, "Total number of players : %s/%s" % ( len( self.players ),
                                                            self.maxseats )
+    #endef
+
+    def write_PartyPoker_street( self, street, fh ):
+        STREET = street.upper()
+
+        if self.board[ STREET ]:
+            print >> fh, "** Dealing %s ** [ %s ]" % (
+                street.capitalize(),
+                ", ".join( self.board[ STREET ] ) )
+        #endif
+
+        for action in self.actions[ STREET ]:
+            print >> fh, self.get_PartyPoker_action( action )
+        #endfor
     #endef
 #endclass
 
@@ -1624,15 +1638,9 @@ class HoldemOmahaHand(Hand):
             print >> fh, self.get_PartyPoker_action( action )
         #endfor
 
-        #
-        # Flop action.
-        if self.board[ 'FLOP' ]:
-            print >> fh, "** Dealing Flop ** [ %s ]" % " ".join( self.board[ 'FLOP' ] )
-        #endif
-
-        for action in self.actions[ 'FLOP' ]:
-            print >> fh, self.get_PartyPoker_action( action )
-        #endfor
+        self.write_PartyPoker_street( 'FLOP', fh )
+        self.write_PartyPoker_street( 'TURN', fh )
+        self.write_PartyPoker_street( 'RIVER', fh )
 
     #endef
 
