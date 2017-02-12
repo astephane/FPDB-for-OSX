@@ -1677,19 +1677,25 @@ class HoldemOmahaHand(Hand):
         if len( self.pot.contenders )==1:
             assert len( self.collected )==1
 
+            player = self.collected[ 0 ][ 0 ]
+
             print >> fh, "%s wins %s%.2f%s" % (
-                self.collected[ 0 ][ 0 ],
+                player,
                 self.sym,
-                float( self.collected[ 0 ][ 1 ] ),
+                float( self.collected[ 0 ][ 1 ] ) +
+                float( self.pot.returned[ player ] ),
                 currency_suffix
                 )
 
         elif len( self.pot.contenders )>1:
             if len( self.collected )==1:
+                player = self.collected[ 0 ][ 0 ]
+
                 print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
-                    self.collected[ 0 ][ 0 ],
+                    player,
                     self.sym,
-                    float( self.collected[ 0 ][ 1 ] ),
+                    float( self.collected[ 0 ][ 1 ] ) +
+                    float( self.pot.returned[ player ] ),
                     currency_suffix )
 
             elif len( self.collected )>1:
@@ -1697,7 +1703,8 @@ class HoldemOmahaHand(Hand):
                     print >> fh, "%s wins %s%.2f%s with A hand." % (
                         player,
                         self.sym,
-                        float( amount ),
+                        float( amount ) +
+                        float( self.pot.returned( player ),
                         currency_suffix )
             #endfor
         #endif
