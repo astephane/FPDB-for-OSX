@@ -1592,6 +1592,7 @@ class HoldemOmahaHand(Hand):
         super( HoldemOmahaHand, self ).writePartyPokerHand( fh )
 
         print "self.handid =", self.handid
+        print "self.hero =", self.hero
         print "self.seating =", self.seating
         print "self.sitout =", self.sitout
         print "self.players =", self.players
@@ -1661,10 +1662,14 @@ class HoldemOmahaHand(Hand):
 
         #
         # Showdown.
-        for player in self.holecards[ 'PREFLOP' ]:
-            print >> fh, "%s shows [ %s ]A hand." % (
-                player,
-                ", ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] ) )
+        for player in self.pot.contenders:
+            if player in self.holecards[ 'PREFLOP' ]:
+                print >> fh, "%s shows [ %s ]A hand." % (
+                    player,
+                    ", ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] ) )
+            else:
+                print >> fh, "%s does not show cards." % player
+            #endif
         #endfor
 
         #
