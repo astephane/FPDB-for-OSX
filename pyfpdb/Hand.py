@@ -1347,7 +1347,7 @@ class Hand(object):
         print >> fh, "Seat %s is the button" % self.buttonpos
 
         print >> fh, "Total number of players : %s/%s" % ( len( self.players ),
-                                                           self.maxseats )
+                                                           self.counted_seats )
     #endef
 
     def write_PartyPoker_street( self, street, fh ):
@@ -1591,18 +1591,28 @@ class HoldemOmahaHand(Hand):
     def writePartyPokerHand( self, fh ):
         super( HoldemOmahaHand, self ).writePartyPokerHand( fh )
 
+        print "self.handid =", self.handid
+        print "self.seating =", self.seating
+        print "self.sitout =", self.sitout
         print "self.players =", self.players
         print "self.actions =", self.actions
         print "self.dealt =", self.dealt
         print "self.holecards =", self.holecards
         print "self.shown =", self.shown
-        # print "self.pot =", str( self.pot )
-        print "self.collected =", self.collected
-        print "self.pot.returned =", self.pot.returned
         print "self.board =", self.board
+        print "self.collected =", self.collected
         print "self.collectees =", self.collectees
         print "self.mucked =", self.mucked
         print "self.folded =", self.folded
+        print "self.pot.contenders =", self.pot.contenders
+        print "self.pot.committed =", self.pot.committed
+        print "self.pot.streettotals =", self.pot.streettotals
+        print "self.pot.common =", self.pot.common
+        print "self.pot.antes =", self.pot.antes
+        print "self.pot.total =", self.pot.total
+        print "self.pot.returned =", self.pot.returned
+        print "self.pot.pots =", self.pot.pots
+        print "self.pot.handid =", self.pot.handid
         print
 
         currency_suffix = self.get_currency_suffix()
@@ -1659,12 +1669,33 @@ class HoldemOmahaHand(Hand):
 
         #
         # Results.
-        for (player, amount) in self.collected:
-            print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
-                player,
+        if len( self.pot.contenders )==1:
+            assert len( self.collected )==1
+
+            print >> fh, "%s wins %s%.2f%s" % (
+                self.collected[ 0 ][ 0 ],
                 self.sym,
-                float( amount ),
-                currency_suffix )
+                float( self.collected[ 0 ][ 1 ] ),
+                currency_suffix
+                )
+
+        elif len( self.pot.contenders )>1:
+            if len( self.collected )==1:
+                print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
+                    self.collected[ 0 ][ 0 ],
+                    self.sym,
+                    float( self.collected[ 0 ][ 1 ] ),
+                    currency_suffix )
+
+            elif len( self.collected )>1:
+                for (player, amount) in self.collected:
+                    print >> fh, "%s wins %s%.2f%s with A hand." % (
+                        player,
+                        self.sym,
+                        float( amount ),
+                        currency_suffix )
+            #endfor
+        #endif
     #endef
 
 #endclass
