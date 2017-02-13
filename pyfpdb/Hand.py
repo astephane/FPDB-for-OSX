@@ -1704,9 +1704,10 @@ class HoldemOmahaHand(Hand):
                         player,
                         self.sym,
                         float( amount ) +
-                        float( self.pot.returned( player ),
+                        float( self.pot.returned[ player ] ),
                         currency_suffix )
-            #endfor
+                #endfor
+            #endif
         #endif
     #endef
 
