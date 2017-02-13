@@ -1359,8 +1359,15 @@ class Hand(object):
 
         print >> fh, "Seat %s is the button" % self.buttonpos
 
+        # Since self.maxseats is always 10 (PMU/PartyPoker supports 6-max and
+        # 9-max), try to guess max-seats.
+        max_seats = 6
+
+        if len( self.players )>6:
+            max_seats = 9
+
         print >> fh, "Total number of players : %s/%s" % ( len( self.players ),
-                                                           self.maxseats )
+                                                           max_seats )
     #endef
 
     def write_PartyPoker_street( self, street, fh ):
