@@ -1735,16 +1735,6 @@ class HoldemOmahaHand(Hand):
                         self.sym,
                         float( self.collected[ 0 ][ 1 ] ),
                         currency_suffix )
-
-                    # returned = self.get_returned( player )
-
-                    # if returned>0.0:
-                    #     print >> fh, "%s wins %s%.2f%s from the side pot with A hand." % (
-                    #         player,
-                    #         self.sym,
-                    #         self.get_returned( player ),
-                    #         currency_suffix )
-                    # #endif
                 else:
                     print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
                         player,
