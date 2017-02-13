@@ -1317,6 +1317,13 @@ class Hand(object):
         return " " + self.gametype[ 'currency' ]
     #endef
 
+    def get_returned( self, player ):
+        if player not in self.pot.returned:
+            return 0.0
+
+        return float( self.pot.returned[ player ] )
+    #endef
+
     def writePartyPokerHand( self, fh = sys.__stdout__ ):
         self.writePartyPokerGame( fh )
         self.writePartyPokerTable( fh )
@@ -1691,6 +1698,19 @@ class HoldemOmahaHand(Hand):
         #endfor
 
         #
+        # Check if there was at least one player all-in.
+        all_in = False
+
+        for street in self.actions:
+            for action in self.actions[ street ]:
+                if len( action )>3 and action[ -1 ]:
+                    all_in = True
+                    break
+                #endif
+            #endfor
+        #endfor
+
+        #
         # Results.
         if len( self.pot.contenders )==1:
             assert len( self.collected )==1
@@ -1701,7 +1721,7 @@ class HoldemOmahaHand(Hand):
                 player,
                 self.sym,
                 float( self.collected[ 0 ][ 1 ] ) +
-                float( self.pot.returned[ player ] ),
+                self.get_returned( player ),
                 currency_suffix
                 )
 
@@ -1709,20 +1729,51 @@ class HoldemOmahaHand(Hand):
             if len( self.collected )==1:
                 player = self.collected[ 0 ][ 0 ]
 
-                print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
-                    player,
-                    self.sym,
-                    float( self.collected[ 0 ][ 1 ] ) +
-                    float( self.pot.returned[ player ] ),
-                    currency_suffix )
+                if all_in:
+                    print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
+                        player,
+                        self.sym,
+                        float( self.collected[ 0 ][ 1 ] ),
+                        currency_suffix )
 
+                    # returned = self.get_returned( player )
+
+                    # if returned>0.0:
+                    #     print >> fh, "%s wins %s%.2f%s from the side pot with A hand." % (
+                    #         player,
+                    #         self.sym,
+                    #         self.get_returned( player ),
+                    #         currency_suffix )
+                    # #endif
+                else:
+                    print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
+                        player,
+                        self.sym,
+                        float( self.collected[ 0 ][ 1 ] ) +
+                        self.get_returned( player ),
+                        currency_suffix )
+                #endif
+
+                i = 1
+
+                for player in self.pot.returned:
+                    print >> fh, "%s wins %s%.2f%s from the side pot %d with A hand." % (
+                        player,
+                        self.sym,
+                        self.get_returned( player ),
+                        currency_suffix,
+                        i )
+
+                    i += 1
+                #endfor
             elif len( self.collected )>1:
                 for (player, amount) in self.collected:
+
                     print >> fh, "%s wins %s%.2f%s with A hand." % (
                         player,
                         self.sym,
                         float( amount ) +
-                        float( self.pot.returned[ player ] ),
+                        self.get_returned( player ),
                         currency_suffix )
                 #endfor
             #endif
