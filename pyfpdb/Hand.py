@@ -1735,6 +1735,19 @@ class HoldemOmahaHand(Hand):
                         self.sym,
                         float( self.collected[ 0 ][ 1 ] ),
                         currency_suffix )
+
+                    i = 1
+
+                    for player in self.pot.returned:
+                        print >> fh, "%s wins %s%.2f%s from the side pot %d with A hand." % (
+                            player,
+                            self.sym,
+                            self.get_returned( player ),
+                            currency_suffix,
+                            i )
+
+                        i += 1
+                    #endfor
                 else:
                     print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
                         player,
@@ -1743,19 +1756,6 @@ class HoldemOmahaHand(Hand):
                         self.get_returned( player ),
                         currency_suffix )
                 #endif
-
-                i = 1
-
-                for player in self.pot.returned:
-                    print >> fh, "%s wins %s%.2f%s from the side pot %d with A hand." % (
-                        player,
-                        self.sym,
-                        self.get_returned( player ),
-                        currency_suffix,
-                        i )
-
-                    i += 1
-                #endfor
             elif len( self.collected )>1:
                 for (player, amount) in self.collected:
 
