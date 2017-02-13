@@ -1186,11 +1186,17 @@ class Hand(object):
             return ("%s: stands pat" %(act[0]))
 
     def get_PartyPoker_action( self, action ):
+        # Simple action (fold, check).
         string = "%s %s" % ( action[ 0 ], action[ 1 ] )
 
         if len( action )<=2:
             return string
 
+        # Extended action (all-in).
+        if action[ -1 ]:
+            string = "%s is all-In " % action[ 0 ]
+
+        # Extended action (bet, raise, call).
         bet_raise = action[ 2 ]
 
         if len( action )>=5:
@@ -1664,10 +1670,22 @@ class HoldemOmahaHand(Hand):
         # Showdown.
         for player in self.pot.contenders:
             if player in self.holecards[ 'PREFLOP' ]:
-                print >> fh, "%s shows [ %s ]A hand." % (
-                    player,
-                    ", ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] ) )
+                holecards = ", ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] )
+
+                # Partially mucked hand.
+                if player in self.mucked and \
+                   player not in self.collectees:
+                    print >> fh, "%s doesn't show [ %s ]A hand." % (
+                        player,
+                        holecards )
+                # Shown hand.
+                else:
+                    print >> fh, "%s shows [ %s ]A hand." % (
+                        player,
+                        holecards )
+                #endif
             else:
+                # Totally mucked hands.
                 print >> fh, "%s does not show cards." % player
             #endif
         #endfor
