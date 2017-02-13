@@ -1347,7 +1347,7 @@ class Hand(object):
         print >> fh, "Seat %s is the button" % self.buttonpos
 
         print >> fh, "Total number of players : %s/%s" % ( len( self.players ),
-                                                           self.counted_seats )
+                                                           self.maxseats )
     #endef
 
     def write_PartyPoker_street( self, street, fh ):
