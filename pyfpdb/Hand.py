@@ -1366,7 +1366,7 @@ class Hand(object):
         if len( self.players )>6:
             max_seats = 9
 
-        print >> fh, "Total number of players : %s/%s" % ( len( self.players ),
+        print >> fh, "Total number of players : %s/%s " % ( len( self.players ),
                                                            max_seats )
     #endef
 
@@ -1665,7 +1665,7 @@ class HoldemOmahaHand(Hand):
         print >> fh, "** Dealing down cards **"
 
         for player in self.dealt:
-            print >> fh, "Dealt to %s [ %s ]" % (
+            print >> fh, "Dealt to %s [  %s ]" % (
                 player,
                 " ".join( self.holecards[ 'PREFLOP' ][ player ][ 1 ] ) )
         #endfor
@@ -1731,7 +1731,7 @@ class HoldemOmahaHand(Hand):
                 self.get_returned( player ),
                 currency_suffix
                 )
-        else:        
+        else:
             for (player, amount) in self.collected:
                 if all_in:
                     print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
