@@ -1731,16 +1731,13 @@ class HoldemOmahaHand(Hand):
                 self.get_returned( player ),
                 currency_suffix
                 )
-
-        elif len( self.pot.contenders )>1:
-            if len( self.collected )==1:
-                player = self.collected[ 0 ][ 0 ]
-
+        else:        
+            for (player, amount) in self.collected:
                 if all_in:
                     print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
                         player,
                         self.sym,
-                        float( self.collected[ 0 ][ 1 ] ),
+                        float( amount ),
                         currency_suffix )
 
                     i = 1
@@ -1759,21 +1756,11 @@ class HoldemOmahaHand(Hand):
                     print >> fh, "%s wins %s%.2f%s from the main pot with A hand." % (
                         player,
                         self.sym,
-                        float( self.collected[ 0 ][ 1 ] ) +
-                        self.get_returned( player ),
-                        currency_suffix )
-                #endif
-            elif len( self.collected )>1:
-                for (player, amount) in self.collected:
-
-                    print >> fh, "%s wins %s%.2f%s with A hand." % (
-                        player,
-                        self.sym,
                         float( amount ) +
                         self.get_returned( player ),
                         currency_suffix )
-                #endfor
-            #endif
+                #endif
+            #endfor
         #endif
     #endef
 
